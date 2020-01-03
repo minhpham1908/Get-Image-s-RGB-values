@@ -38,20 +38,22 @@ public class ImageProcesser {
         this.imageHeight = image.getHeight();
         this.imageWidth = image.getWidth();
         System.out.println("Loaded!");
+        System.out.println(imageHeight);
+        System.out.println(imageWidth);
     }
 
     public int[][] getRGBArray() {
         int[][] rgbArray = new int[imageHeight][imageWidth];
         for (int i = 0; i < imageHeight; i++) {
             for (int j = 0; j < imageWidth; j++) {
-                rgbArray[j][i] = image.getRGB(i, j);
+                rgbArray[i][j] = image.getRGB(j, i);
             }
         }
         return rgbArray;
     }
 
     public int[][] GetRedArray(int[][] rgbArray) {
-        int[][] redArray = new int[imageHeight][imageHeight];
+        int[][] redArray = new int[imageHeight][imageWidth];
         for (int i = 0; i < imageHeight; i++) {
             for (int j = 0; j < imageWidth; j++) {
                 redArray[i][j] = (rgbArray[i][j] >> 16) & 0xff;
@@ -62,7 +64,7 @@ public class ImageProcesser {
     }
 
     public int[][] GetGreenArray(int[][] rgbArray) {
-        int[][] greenArray = new int[imageHeight][imageHeight];
+        int[][] greenArray = new int[imageHeight][imageWidth];
         for (int i = 0; i < imageHeight; i++) {
             for (int j = 0; j < imageWidth; j++) {
                 greenArray[i][j] = (rgbArray[i][j] >> 8) & 0xff;
@@ -73,7 +75,7 @@ public class ImageProcesser {
     }
 
     public int[][] GetBlueArray(int[][] rgbArray) {
-        int[][] blueArray = new int[imageHeight][imageHeight];
+        int[][] blueArray = new int[imageHeight][imageWidth];
         for (int i = 0; i < imageHeight; i++) {
             for (int j = 0; j < imageWidth; j++) {
                 blueArray[i][j] = (rgbArray[i][j]) & 0xff;
@@ -94,6 +96,8 @@ public class ImageProcesser {
             for (int j = 0; j < imageWidth; j++) {
                 double y = kr * redArray[i][j] + kg * greenArray[i][j] + kb * blueArray[i][j];
                 Y[i][j] = (int) (y);
+                //shift
+                Y[i][j] -= 128;
             }
         }
 
@@ -101,11 +105,13 @@ public class ImageProcesser {
     }
 
     public int[][] ConvertRGBToCb(int[][] redArray, int[][] greenArray, int[][] blueArray) {
-        int[][] Cb = new int[imageHeight][imageHeight];
+        int[][] Cb = new int[imageHeight][imageWidth];
         for (int i = 0; i < imageHeight; i++) {
             for (int j = 0; j < imageWidth; j++) {
                 double y = kr * redArray[i][j] + kg * greenArray[i][j] + kb * blueArray[i][j];
                 Cb[i][j] = (int) ((blueArray[i][j] - y) / (2 * (1 - kb)));
+                //shift
+                Cb[i][j] -= 128;
             }
         }
 
@@ -113,11 +119,13 @@ public class ImageProcesser {
     }
 
     public int[][] ConvertRGBToCr(int[][] redArray, int[][] greenArray, int[][] blueArray) {
-        int[][] Cr = new int[imageHeight][imageHeight];
+        int[][] Cr = new int[imageHeight][imageWidth];
         for (int i = 0; i < imageHeight; i++) {
             for (int j = 0; j < imageWidth; j++) {
                 double y = kr * redArray[i][j] + kg * greenArray[i][j] + kb * blueArray[i][j];
                 Cr[i][j] = (int) ((redArray[i][j] - y) / (2 * (1 - kr)));
+                //shift
+                Cr[i][j] -= 128;
             }
         }
 
@@ -224,10 +232,22 @@ public class ImageProcesser {
         int[][] Q = new int[8][8];
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
-                Q[i][j] = (int) Math.round(G[i][j]/lumi_quantizier[i][j]);
+                Q[i][j] = (int) Math.round(G[i][j] / lumi_quantizier[i][j]);
             }
         }
         return Q;
+    }
+
+    public int[][] getBlock(int[][] component, int blockIndex) {
+        int xStart = blockIndex % imageHeight;
+        int yStart = blockIndex / imageWidth;
+        int block[][] = new int[8][8];
+        for (int i = xStart; i < xStart + 8; i++) {
+            for (int j = yStart; j < yStart + 8; j++) {
+                block[i - xStart][j - yStart] = component[i][j];
+            }
+        }
+        return block;
     }
 
     private void PrintMatrix(double[][] g) {

@@ -12,7 +12,7 @@ public class Main {
     public static void main(String[] args) throws IOException {
         ImageProcesser imageProcesser = new ImageProcesser();
         BufferedImage image = null;
-        image = ImageIO.read(new File("./res/huff_simple0.png"));
+        image = ImageIO.read(new File("./res/huff_simple0.jpg"));
 
 
         imageProcesser.LoadImage(image);
@@ -23,17 +23,20 @@ public class Main {
         int Y[][] = imageProcesser.ConvertRGBToY(red,green,blue);
         int Cb[][] = imageProcesser.ConvertRGBToCb(red,green,blue);
         int Cr[][] = imageProcesser.ConvertRGBToCr(red,green,blue);
-        Y = imageProcesser.shift(Y);
-
-        int quan[][] = imageProcesser.quant(Y);
-        PrintMatrix(quan);
+        int test[][]= imageProcesser.getBlock(Y,0);
+        PrintMatrix(red, image.getHeight(), image.getWidth());
+        PrintMatrix(green, image.getHeight(), image.getWidth());
+        PrintMatrix(blue, image.getHeight(), image.getWidth());
+        PrintMatrix(test, 8,8);
+        int quanM[][] = imageProcesser.quant(test);
+        PrintMatrix(quanM,8, 8);
 
     }
 
 
-    public static void PrintMatrix(int[][] matrix) {
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
+    public static void PrintMatrix(int[][] matrix, int imageHeight, int imageWidth) {
+        for (int i = 0; i < imageHeight; i++) {
+            for (int j = 0; j < imageWidth; j++) {
                 System.out.print(" | " + matrix[i][j]);
             }
             System.out.println();
